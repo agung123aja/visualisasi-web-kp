@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tes Grafik Deviasi</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <style>
+        body { font-family: sans-serif; margin: 20px; text-align: center; }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 80%;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        button { padding: 10px 20px; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        #error_message { color: red; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Tes Tampilan Grafik</h1>
+    <button onclick="loadAndDisplayChart()">Muat dan Tampilkan Grafik Contoh</button>
+    <div class="chart-container">
+        <canvas id="deviasiChart"></canvas>
+    </div>
+    <div id="error_message"></div>
+
+    <script>
+        // Daftarkan plugin Datalabels secara global
+        Chart.register(ChartjsPluginDatalabels);
+
+        let deviasiChartInstance = null;
+
+        function drawChart(labels, values, colors) {
+            const ctx = document.getElementById('deviasiChart').getContext('2d');
+
+            if (deviasiChartInstance) {
+                deviasiChartInstance.destroy();
+            }
+
+            const minValue = Math.min(...values.map(Number));
+            const maxValue = Math.max(...values.map(Number));
+            const padding = (maxValue - minValue) * 0.1;
+            const suggestedMin = minValue - padding;
+            const suggestedMax = maxValue + padding;
+
+            deviasiChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Deviasi Bersih',
+                        data: values,
+                        backgroundColor: colors,
+                        borderColor: colors.map(color => color.replace('rgb', 'rgba').replace(')', ', 0.8)')),
+                        borderWidth: 1,
+                        barPercentage: 0.8,
+                        categoryPercentage: 0.8
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Deviasi Bersih (Akurasi Lebih Baik: Lebih Dekat ke 0%)'
+                            },
+                            ticks: {
+                                callback: function(value, index, values) {
+                                    return (value * 100).toFixed(2) + '%';
+                                }
+                            },
+                            min: suggestedMin,
+                            max: suggestedMax
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Nama Bagian'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        label += (context.parsed.x * 100).toFixed(6) + '%';
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'end',
+                            color: 'black',
+                            font: {
+                                weight: 'bold',
+                                size: 10
+                            },
+                            formatter: function(value, context) {
+                                return (value * 100).toFixed(2) + '%';
+                            },
+                            offset: 4
+                        }
+                    }
+                }
+            });
+        }
+
+        async function loadAndDisplayChart() {
+            document.getElementById('error_message').textContent = ''; // Bersihkan pesan error sebelumnya
+            // Ini adalah data contoh yang sama persis dengan yang kamu dapatkan dari backend
+            const exampleData = {
+                "bar_colors": [
+                    "#8bc34a", "#8bc34a", "#8bc34a", "#8bc34a", "#ffb74d", 
+                    "#ffb74d", "#ffb74d", "#ffb74d", "#ffb74d", "#ffb74d", 
+                    "#ffb74d", "#ffb74d", "#ffb74d"
+                ],
+                "chart_labels": [
+                    "Bidang air tanah", "Bidang pertambangan", "Bidang ke tenagalistrikan", 
+                    "WILAYAH I CIANJUR", "WILAYAH II BOGOR", "WILAYAH VII CIREBON", 
+                    "UPTD LABORATORIUM ESDM", "WILAYAH IV BANDUNG", "Sekretariat", 
+                    "Bidang energi", "WILAYAH VI TASIKMALAYA", "WILAYAH V SUMEDANG", 
+                    "WILAYAH III PURWAKARTA"
+                ],
+                "deviasi_bersih_values": [
+                    "0", "0E-29", "0E-30", "0E-29", "0.00060617487369805322352011128", 
+                    "0.00231075230878281327195003971", "0.00336594336221585793150087295", 
+                    "0.004441911113940359157558626834", "0.00503803605387376864963194949", 
+                    "0.006307780926522911675201009662", "0.00688468053553582945251688699", 
+                    "0.006901583093992074390327287141", "0.00832957428447375512885550889"
+                ],
+                "ranking_data": [
+                    // ... data ranking Anda yang panjang ada di sini, tapi untuk tes ini kita tidak pakai
+                ],
+                "success": true
+            };
+
+            try {
+                // Konversi string numerik menjadi angka (penting untuk Chart.js)
+                const numericValues = exampleData.deviasi_bersih_values.map(Number);
+
+                drawChart(exampleData.chart_labels, numericValues, exampleData.bar_colors);
+                console.log("Grafik berhasil ditampilkan dengan data contoh.");
+            } catch (error) {
+                console.error("Error saat menampilkan grafik contoh:", error);
+                document.getElementById('error_message').textContent = `Error: ${error.message}. Cek konsol browser untuk detail.`;
+            }
+        }
+    </script>
+</body>
+</html>

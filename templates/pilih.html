@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pilih Laporan untuk Analisis</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #212529;
+            --muted-color: #6c757d;
+            --border-color: #dee2e6;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding: 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--card-background);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+        }
+        .header h1 { font-size: 1.8rem; }
+        .back-button {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        .report-list-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #f1f1f1;
+            transition: background-color 0.2s;
+        }
+        .report-list-item:last-child { border-bottom: none; }
+        .report-list-item:hover { background-color: #f8f9fa; }
+        .report-list-item input[type="checkbox"] {
+            margin-right: 1.5rem;
+            width: 1.2rem;
+            height: 1.2rem;
+            accent-color: var(--primary-color);
+        }
+        .report-list-item label {
+            font-size: 1.1rem;
+            cursor: pointer;
+            flex-grow: 1;
+        }
+        .select-all-container { padding: 1rem; }
+        .process-button {
+            width: 100%;
+            padding: 0.9rem;
+            margin-top: 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            background-color: var(--success-color);
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .process-button:hover { background-color: #218838; }
+        .no-data { text-align: center; padding: 3rem; color: var(--muted-color); }
+
+        /* Style tambahan untuk date pickers */
+        .date-range-container {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background-color: #fcfcfc;
+        }
+        .date-range-container label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        .date-range-container input[type="month"] {
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.4rem;
+            width: calc(50% - 10px);
+            margin-right: 20px;
+            box-sizing: border-box;
+        }
+        .date-range-container input[type="month"]:last-child {
+            margin-right: 0;
+        }
+
+        /* Styles for Result Section */
+        .result-section {
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .result-section h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 1.6rem;
+            color: var(--primary-color);
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        .ranking-table th, .ranking-table td {
+            border: 1px solid var(--border-color);
+            padding: 10px 15px;
+            text-align: left;
+        }
+        .ranking-table th {
+            background-color: #e9ecef;
+            font-weight: 600;
+        }
+        .ranking-table tr:nth-child(even) {
+            background-color: #f6f6f6;
+        }
+        .ranking-table td:first-child { font-weight: 500; }
+        .rank-badge {
+            display: inline-block;
+            min-width: 25px;
+            padding: 4px 8px;
+            border-radius: 0.3rem;
+            color: white;
+            font-weight: 700;
+            text-align: center;
+            margin-right: 8px;
+        }
+        .rank-badge.rank-1 { background-color: #007bff; }
+        .rank-badge.rank-last { background-color: #dc3545; }
+        .rank-badge:not(.rank-1):not(.rank-last) { background-color: #6c757d; }
+
+        .download-pdf-button { /* Gaya untuk tombol unduh PDF */
+            width: 100%;
+            padding: 0.9rem;
+            margin-top: 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            background-color: #6f42c1; /* Warna ungu */
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .download-pdf-button:hover {
+            background-color: #5a359d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Pilih Laporan untuk Analisis Grafik</h1>
+        <a href="{{ url_for('dashboard') }}" class="back-button"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+    </div>
+
+    <form id="analysis-form" action="{{ url_for('process_reports') }}" method="post">
+
+        {% if daftar_laporan %}
+            <p style="margin-bottom: 1rem; color: var(--muted-color);">Pilih laporan bulanan yang tersedia, atau tentukan rentang bulan untuk akumulasi data realisasi.</p>
+
+            <div class="date-range-container">
+                <h3>Pilih Rentang Bulan:</h3>
+                <label for="startDate">Tanggal Mulai:</label>
+                <input type="month" id="startDate" name="startDate">
+                <label for="endDate" style="margin-left: 20px;">Tanggal Akhir:</label>
+                <input type="month" id="endDate" name="endDate">
+                <p style="font-size: 0.9em; color: var(--muted-color); margin-top: 10px;">*Jika memilih rentang bulan, realisasi akan diakumulasikan, dan nilai DPPA/Target diambil dari bulan terakhir dalam rentang tersebut.</p>
+            </div>
+
+            <h3 style="margin-top: 2rem;">Atau Pilih Laporan Spesifik:</h3>
+            <div class="select-all-container">
+                <input type="checkbox" id="select-all">
+                <label for="select-all">Pilih Semua Laporan Tersedia</label>
+            </div>
+
+            <div class="report-list">
+                {% for laporan in daftar_laporan %}
+                <div class="report-list-item">
+                    <input type="checkbox" name="selected_report_ids" value="{{ laporan.id }}" class="report-checkbox">
+                    <label>{{ laporan.nama_bulan }} {{ laporan.tahun }}</label>
+                </div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="process-button">
+                <i class="fas fa-chart-bar"></i> Proses & Tampilkan Grafik
+            </button>
+        {% else %}
+            <div class="no-data">
+                <p>Tidak ada data laporan yang tersedia untuk analisis saat ini.</p>
+                <p>Silakan <a href="{{ url_for('handle_upload') }}" style="color: var(--primary-color); text-decoration: none;">unggah laporan baru</a>.</p>
+            </div>
+        {% endif %}
+
+    </form>
+
+    <div id="resultContainer" class="result-section" style="display: none;">
+        <h2>Grafik Deviasi Bersih Per Bagian</h2>
+        <div class="chart-container">
+            <canvas id="deviasiChart"></canvas>
+        </div>
+
+        <h2>Ranking Deviasi Bersih</h2>
+        <table class="ranking-table">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Nama Bagian</th>
+                    <th>Deviasi Bersih</th>
+                    <th>Realisasi Akumulatif</th>
+                    <th>Target Terakhir</th>
+                </tr>
+            </thead>
+            <tbody id="rankingTableBody">
+                </tbody>
+        </table>
+
+        <button type="button" id="downloadPdfButton" class="download-pdf-button" style="display: none;">
+            <i class="fas fa-file-pdf"></i> Unduh Laporan PDF
+        </button>
+    </div>
+
+</div>
+
+<script>
+    let deviasiChartInstance = null;
+    let currentRankingData = []; // Variabel global untuk menyimpan data ranking
+    let currentReportPeriodInfo = ""; // Variabel global untuk menyimpan info periode
+
+    document.getElementById('select-all').addEventListener('click', function(event) {
+        let checkboxes = document.querySelectorAll('.report-checkbox');
+        for (let checkbox of checkboxes) {
+            checkbox.checked = event.target.checked;
+        }
+    });
+
+    function drawChart(labels, values, colors) {
+        const ctx = document.getElementById('deviasiChart').getContext('2d');
+        if (deviasiChartInstance) {
+            deviasiChartInstance.destroy();
+        }
+        deviasiChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Deviasi Bersih',
+                    data: values,
+                    backgroundColor: colors,
+                    borderColor: colors.map(color => color.replace('rgb', 'rgba').replace(')', ', 0.8)')),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Deviasi Bersih'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Nama Bagian'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += (context.parsed.y * 100).toFixed(4) + '%';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function populateRankingTable(rankingData) {
+        const tableBody = document.getElementById('rankingTableBody');
+        tableBody.innerHTML = '';
+
+        const totalRanks = rankingData.length;
+
+        rankingData.forEach(item => {
+            const row = tableBody.insertRow();
+
+            const rankCell = row.insertCell();
+            const rankBadge = document.createElement('span');
+            rankBadge.textContent = item.rank;
+            rankBadge.classList.add('rank-badge');
+            if (item.rank === 1) {
+                rankBadge.classList.add('rank-1');
+            } else if (item.rank === totalRanks) {
+                rankBadge.classList.add('rank-last');
+            } else {
+                rankBadge.style.backgroundColor = item.color;
+            }
+            rankCell.appendChild(rankBadge);
+
+            row.insertCell().textContent = item.nama_bagian;
+            row.insertCell().textContent = (item.deviasi_bersih * 100).toFixed(4) + '%';
+            row.insertCell().textContent = new Intl.NumberFormat('id-ID').format(parseFloat(item.realisasi_akumulatif));
+            row.insertCell().textContent = new Intl.NumberFormat('id-ID').format(parseFloat(item.target_terakhir));
+        });
+    }
+
+    document.getElementById('analysis-form').addEventListener('submit', async function(event) {
+        event.preventDefault();
+
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        const checkedBoxes = document.querySelectorAll('.report-checkbox:checked');
+        const selectedReportIds = Array.from(checkedBoxes).map(cb => cb.value);
+
+        if ((!startDate && !endDate && selectedReportIds.length === 0) || (startDate && endDate && selectedReportIds.length > 0)) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Kesalahan Pilihan',
+                text: 'Harap pilih rentang bulan SAJA, atau pilih laporan dari daftar SAJA. Tidak boleh keduanya atau tidak ada yang dipilih.'
+            });
+            return;
+        }
+
+        if (startDate && endDate) {
+            if (new Date(startDate) > new Date(endDate)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kesalahan Tanggal',
+                    text: 'Tanggal mulai tidak boleh lebih dari tanggal akhir.'
+                });
+                return;
+            }
+        } else if (selectedReportIds.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tidak Ada yang Dipilih',
+                text: 'Silakan pilih rentang bulan atau setidaknya satu laporan untuk diproses.'
+            });
+            return;
+        }
+
+        let confirmationText = '';
+        if (startDate && endDate) {
+            confirmationText = `Anda akan memproses laporan dari ${startDate} hingga ${endDate}. Realisasi akan diakumulasikan, DPPA/Target dari bulan terakhir.`;
+        } else {
+            confirmationText = `Anda akan memproses ${selectedReportIds.length} laporan yang dipilih.`;
+        }
+
+        const result = await Swal.fire({
+            title: 'Konfirmasi Proses',
+            text: confirmationText,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: 'var(--success-color)',
+            cancelButtonColor: 'var(--muted-color)',
+            confirmButtonText: 'Ya, Proses!',
+            cancelButtonText: 'Batal'
+        });
+
+        if (result.isConfirmed) {
+            const formData = new FormData(this);
+
+            if (startDate && endDate) {
+                formData.delete('selected_report_ids');
+            } else {
+                formData.delete('startDate');
+                formData.delete('endDate');
+            }
+
+            Swal.fire({
+                title: 'Memproses...',
+                text: 'Mohon tunggu sebentar data sedang diolah.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                const response = await fetch(this.action, {
+                    method: this.method,
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                Swal.close();
+
+                if (data.success) {
+                    Swal.fire('Sukses!', 'Data berhasil diproses dan grafik ditampilkan.', 'success');
+                    document.getElementById('resultContainer').style.display = 'block';
+                    document.getElementById('downloadPdfButton').style.display = 'block'; // Tampilkan tombol PDF
+
+                    drawChart(data.chart_labels, data.deviasi_bersih_values.map(Number), data.bar_colors);
+                    populateRankingTable(data.ranking_data);
+
+                    // Simpan data ranking dan info periode ke variabel global
+                    currentRankingData = data.ranking_data;
+                    currentReportPeriodInfo = data.report_period_info;
+
+                } else {
+                    Swal.fire('Error!', data.message || 'Terjadi kesalahan saat memproses data.', 'error');
+                    document.getElementById('downloadPdfButton').style.display = 'none'; // Sembunyikan tombol PDF jika error
+                }
+            } catch (error) {
+                Swal.close();
+                Swal.fire('Error Jaringan!', 'Tidak dapat terhubung ke server atau terjadi kesalahan lain. Silakan coba lagi.', 'error');
+                console.error('Error fetching data:', error);
+                document.getElementById('downloadPdfButton').style.display = 'none'; // Sembunyikan tombol PDF jika error
+            }
+        }
+    });
+
+    // Event listener untuk tombol unduh PDF
+    document.getElementById('downloadPdfButton').addEventListener('click', async function() {
+        if (currentRankingData.length === 0) {
+            Swal.fire('Informasi', 'Tidak ada data untuk diunduh sebagai PDF. Harap proses laporan terlebih dahulu.', 'info');
+            return;
+        }
+
+        Swal.fire({
+            title: 'Mempersiapkan PDF...',
+            text: 'Mohon tunggu sebentar.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            const response = await fetch('/generate_pdf_report', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ranking_data: currentRankingData,
+                    report_period_info: currentReportPeriodInfo
+                })
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = 'laporan_deviasi_esdm.pdf';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                Swal.close();
+                Swal.fire('Sukses!', 'Laporan PDF berhasil diunduh.', 'success');
+            } else {
+                const errorData = await response.json();
+                Swal.close();
+                Swal.fire('Error!', errorData.message || 'Gagal membuat PDF.', 'error');
+            }
+        } catch (error) {
+            Swal.close();
+            Swal.fire('Error Jaringan!', 'Tidak dapat terhubung ke server untuk membuat PDF.', 'error');
+            console.error('Error generating PDF:', error);
+        }
+    });
+
+</script>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <script>
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+                Toast.fire({ icon: '{{ category }}', title: '{{ message }}' });
+            </script>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+</body>
+</html>

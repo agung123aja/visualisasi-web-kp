@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hapus Laporan</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --danger-color: #dc3545;
+            --background-color: #f8f9fa;
+            --card-background: #ffffff;
+            --text-color: #212529;
+            --muted-color: #6c757d;
+            --border-color: #dee2e6;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            padding: 2rem;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--card-background);
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+        }
+        .header h1 { font-size: 1.8rem; }
+        .back-button {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        .report-list-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid #f1f1f1;
+            transition: background-color 0.2s;
+        }
+        .report-list-item:last-child { border-bottom: none; }
+        .report-list-item:hover { background-color: #f8f9fa; }
+        .report-list-item input[type="checkbox"] {
+            margin-right: 1.5rem;
+            width: 1.2rem;
+            height: 1.2rem;
+            accent-color: var(--primary-color);
+        }
+        .report-list-item label {
+            font-size: 1.1rem;
+            cursor: pointer;
+            flex-grow: 1;
+        }
+        .select-all-container { padding: 1rem; }
+        .delete-button {
+            width: 100%;
+            padding: 0.9rem;
+            margin-top: 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            color: white;
+            background-color: var(--danger-color);
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .delete-button:hover { background-color: #bb2d3b; }
+        .no-data { text-align: center; padding: 3rem; color: var(--muted-color); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Hapus Laporan Bulanan</h1>
+        <a href="{{ url_for('dashboard') }}" class="back-button"><i class="fas fa-arrow-left"></i> Kembali ke Dashboard</a>
+    </div>
+
+    <form id="delete-form" action="{{ url_for('halaman_hapus') }}" method="post">
+        
+        {% if daftar_laporan %}
+            <div class="select-all-container">
+                <input type="checkbox" id="select-all">
+                <label for="select-all">Pilih Semua</label>
+            </div>
+
+            <div class="report-list">
+                {% for laporan in daftar_laporan %}
+                <div class="report-list-item">
+                    <input type="checkbox" name="laporan_id" value="{{ laporan.id }}" class="report-checkbox">
+                    <label>{{ laporan.nama_bulan }} {{ laporan.tahun }}</label>
+                </div>
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="delete-button">
+                <i class="fas fa-trash-alt"></i> Hapus Laporan Terpilih
+            </button>
+        {% else %}
+            <div class="no-data">
+                <p>Tidak ada data laporan yang bisa dihapus saat ini.</p>
+            </div>
+        {% endif %}
+
+    </form>
+</div>
+
+<script>
+    // Script untuk fungsionalitas "Pilih Semua"
+    document.getElementById('select-all').addEventListener('click', function(event) {
+        let checkboxes = document.querySelectorAll('.report-checkbox');
+        for (let checkbox of checkboxes) {
+            checkbox.checked = event.target.checked;
+        }
+    });
+
+    // Script untuk konfirmasi sebelum menghapus
+    document.getElementById('delete-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Mencegah form dikirim langsung
+
+        const checkedBoxes = document.querySelectorAll('.report-checkbox:checked').length;
+        if (checkedBoxes === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Tidak Ada yang Dipilih',
+                text: 'Silakan pilih setidaknya satu laporan untuk dihapus.'
+            });
+            return;
+        }
+        
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: `Anda akan menghapus ${checkedBoxes} laporan. Tindakan ini tidak dapat dibatalkan!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Ya, hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                event.target.submit(); // Lanjutkan pengiriman form jika dikonfirmasi
+            }
+        });
+    });
+</script>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <script>
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+                Toast.fire({ icon: '{{ category }}', title: '{{ message }}' });
+            </script>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+</body>
+</html>

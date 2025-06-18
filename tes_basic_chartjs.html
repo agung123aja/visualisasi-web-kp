@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Chart.js Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; }
+        .chart-container {
+            width: 600px; /* Ukuran tetap untuk tes */
+            height: 400px;
+            margin: 50px auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tes Chart.js Sederhana</h1>
+    <div class="chart-container">
+        <canvas id="mySimpleChart"></canvas>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Data contoh paling sederhana
+            const data = {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei'],
+                datasets: [{
+                    label: 'Contoh Data',
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    data: [10, 25, 15, 30, 20],
+                }]
+            };
+
+            const config = {
+                type: 'bar', // Coba bar chart sederhana
+                data: data,
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            };
+
+            try {
+                // Inisialisasi Chart.js
+                new Chart(
+                    document.getElementById('mySimpleChart'),
+                    config
+                );
+                console.log("Chart.js berhasil diinisialisasi pada mySimpleChart.");
+            } catch (error) {
+                console.error("Gagal menginisialisasi Chart.js:", error);
+                const errorMessageDiv = document.createElement('div');
+                errorMessageDiv.style.color = 'red';
+                errorMessageDiv.textContent = `ERROR: ${error.message}. Cek konsol browser Anda.`;
+                document.body.appendChild(errorMessageDiv);
+            }
+        });
+    </script>
+</body>
+</html>

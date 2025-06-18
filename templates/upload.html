@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Input Laporan Modern</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* Reset dasar dan set font utama */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #f0f2f5; /* Latar belakang abu-abu muda */
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* Kontainer utama untuk form */
+    .form-container {
+      background-color: #ffffff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      width: 100%;
+      max-width: 1200px;
+      position: relative; /* <-- DITAMBAHKAN: Agar tombol back bisa diposisikan */
+    }
+
+    /* === DITAMBAHKAN: Style untuk Tombol Back === */
+    .back-button {
+      position: absolute;
+      top: 25px;
+      left: 30px;
+      text-decoration: none;
+      font-weight: 500;
+      color: #007bff;
+      background-color: #e9ecef;
+      padding: 8px 15px;
+      border-radius: 6px;
+      transition: background-color 0.2s, color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .back-button:hover {
+      background-color: #d0d5db;
+      color: #0056b3;
+    }
+    /* === BATAS AKHIR STYLE TOMBOL BACK === */
+
+    /* Judul Form */
+    h1, h2 {
+      color: #0056b3; /* Biru gelap sebagai warna primer */
+      margin-bottom: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    /* Grup input di bagian atas (tahun, bulan, file) */
+    .form-header {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 30px;
+      flex-wrap: wrap; /* Agar responsif di layar kecil */
+    }
+    .form-group {
+        flex: 1;
+        min-width: 200px; /* Lebar minimum untuk setiap grup */
+    }
+
+    /* Style untuk label */
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #555;
+    }
+
+    /* Style umum untuk input dan select box */
+    input[type="number"], select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type="number"]:focus, select:focus {
+      outline: none;
+      border-color: #0056b3;
+      box-shadow: 0 0 0 3px rgba(0, 86, 179, 0.1);
+    }
+    
+    /* === Styling Kustom untuk Input File === */
+    .file-upload-wrapper {
+        position: relative;
+    }
+    input[type="file"] {
+        width: 0.1px;
+        height: 0.1px;
+        opacity: 0;
+        overflow: hidden;
+        position: absolute;
+        z-index: -1;
+    }
+    .file-label {
+        background-color: #007bff;
+        color: white;
+        padding: 12px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        display: inline-block;
+        font-weight: 500;
+        transition: background-color 0.2s;
+    }
+    .file-label:hover {
+        background-color: #0056b3;
+    }
+    #file-name-display {
+        margin-left: 15px;
+        color: #777;
+        font-style: italic;
+    }
+
+    /* Kontainer untuk kolom DPPA dan Target */
+    .columns-container {
+      display: flex;
+      gap: 40px;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .input-section {
+      background-color: #fafafa;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      flex: 1;
+      min-width: 400px; /* Lebar minimum kolom agar tidak terlalu sempit */
+    }
+    .input-section label {
+        margin-top: 15px;
+    }
+
+    /* Tombol Submit */
+    .submit-button {
+      display: block;
+      width: 100%;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      background-color: #28a745;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 30px;
+      transition: background-color 0.2s;
+    }
+    .submit-button:hover {
+      background-color: #218838;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="form-container">
+  
+  <a href="{{ url_for('dashboard') }}" class="back-button">
+    <span>&larr;</span> Kembali
+  </a>
+
+  <h1>Form Input Laporan Bulanan</h1>
+
+  <form action="/upload" method="post" enctype="multipart/form-data">
+    
+    <div class="form-header">
+      <div class="form-group">
+        <label for="tahun">Tahun:</label>
+        <input type="number" id="tahun" name="tahun" placeholder="Contoh: 2025" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="bulan-select">Bulan:</label>
+        <select name="bulan" id="bulan-select" required>
+            <option value="">--Pilih salah satu--</option>
+            <option value="1">Januari</option>
+            <option value="2">Februari</option>
+            <option value="3">Maret</option>
+            <option value="4">April</option>
+            <option value="5">Mei</option>
+            <option value="6">Juni</option>
+            <option value="7">Juli</option>
+            <option value="8">Agustus</option>
+            <option value="9">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</option>
+            <option value="12">Desember</option>
+        </select>
+      </div>
+
+      <div class="form-group file-upload-wrapper">
+        <label>File Lampiran:</label>
+        <div>
+          <label for="myfile" class="file-label">Pilih File</label>
+          <input type="file" id="myfile" name="myfile" required>
+          <span id="file-name-display">Belum ada file dipilih</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="columns-container">
+      <div class="input-section dppa">
+        <h2>Nilai DPPA</h2>
+        <label for="dppa_sekretariat">Sekretariat</label>
+        <input type="number" id="dppa_sekretariat" name="dppa_sekretariat" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_air_tanah">Bidang Air Tanah</label>
+        <input type="number" id="dppa_air_tanah" name="dppa_air_tanah" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_pertambangan">Bidang Pertambangan</label>
+        <input type="number" id="dppa_pertambangan" name="dppa_pertambangan" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_energi">Bidang Energi</label>
+        <input type="number" id="dppa_energi" name="dppa_energi" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_ketenagalistrikan">Bidang Ketenagalistrikan</label>
+        <input type="number" id="dppa_ketenagalistrikan" name="dppa_ketenagalistrikan" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_cianjur">WILAYAH I CIANJUR</label>
+        <input type="number" id="dppa_cianjur" name="dppa_cianjur" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_bogor">WILAYAH II BOGOR</label>
+        <input type="number" id="dppa_bogor" name="dppa_bogor" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_purwakarta">WILAYAH III PURWAKARTA</label>
+        <input type="number" id="dppa_purwakarta" name="dppa_purwakarta" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_bandung">WILAYAH IV BANDUNG</label>
+        <input type="number" id="dppa_bandung" name="dppa_bandung" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_sumedang">WILAYAH V SUMEDANG</label>
+        <input type="number" id="dppa_sumedang" name="dppa_sumedang" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_tasikmalaya">WILAYAH VI TASIKMALAYA</label>
+        <input type="number" id="dppa_tasikmalaya" name="dppa_tasikmalaya" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_cirebon">WILAYAH VII CIREBON</label>
+        <input type="number" id="dppa_cirebon" name="dppa_cirebon" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="dppa_lab">UPTD LABORATORIUM ESDM</label>
+        <input type="number" id="dppa_lab" name="dppa_lab" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+      </div>
+
+      <div class="input-section target">
+        <h2>Nilai Target</h2>
+        <label for="target_sekretariat">Sekretariat</label>
+        <input type="number" id="target_sekretariat" name="target_sekretariat" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_air_tanah">Bidang Air Tanah</label>
+        <input type="number" id="target_air_tanah" name="target_air_tanah" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_pertambangan">Bidang Pertambangan</label>
+        <input type="number" id="target_pertambangan" name="target_pertambangan" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_energi">Bidang Energi</label>
+        <input type="number" id="target_energi" name="target_energi" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_ketenagalistrikan">Bidang Ketenagalistrikan</label>
+        <input type="number" id="target_ketenagalistrikan" name="target_ketenagalistrikan" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_cianjur">WILAYAH I CIANJUR</label>
+        <input type="number" id="target_cianjur" name="target_cianjur" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_bogor">WILAYAH II BOGOR</label>
+        <input type="number" id="target_bogor" name="target_bogor" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_purwakarta">WILAYAH III PURWAKARTA</label>
+        <input type="number" id="target_purwakarta" name="target_purwakarta" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_bandung">WILAYAH IV BANDUNG</label>
+        <input type="number" id="target_bandung" name="target_bandung" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_sumedang">WILAYAH V SUMEDANG</label>
+        <input type="number" id="target_sumedang" name="target_sumedang" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_tasikmalaya">WILAYAH VI TASIKMALAYA</label>
+        <input type="number" id="target_tasikmalaya" name="target_tasikmalaya" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_cirebon">WILAYAH VII CIREBON</label>
+        <input type="number" id="target_cirebon" name="target_cirebon" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+        <label for="target_lab">UPTD LABORATORIUM ESDM</label>
+        <input type="number" id="target_lab" name="target_lab" placeholder="Masukkan nilai..." min="0" max="1000000000000" step="any">
+      </div>
+    </div>
+
+    <button type="submit" class="submit-button">Kirim Laporan</button>
+  </form>
+</div>
+
+<script>
+  const fileInput = document.getElementById('myfile');
+  const fileNameDisplay = document.getElementById('file-name-display');
+
+  fileInput.addEventListener('change', function() {
+    if (this.files.length > 0) {
+      fileNameDisplay.textContent = this.files[0].name;
+    } else {
+      fileNameDisplay.textContent = 'Belum ada file dipilih';
+    }
+  });
+</script>
+{% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <script>
+                    Swal.fire({
+                        title: '{{ category.title() }}!',
+                        text: '{{ message }}',
+                        icon: '{{ "success" if category == "success" else "error" }}',
+                        confirmButtonText: 'OK'
+                    });
+                </script>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+
+</body>
+</html>
